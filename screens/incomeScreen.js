@@ -46,8 +46,7 @@ componentDidMount(){
 }
 componentWillReceiveProps(){
   // this.fetchData();
-  this.incomeByDate();
-}
+  this.incomeByDate();}
 fetchData=()=>{
   // console.log("Database open Now!");
 
