@@ -104,7 +104,7 @@ class CalendarMenu extends React.Component {
  <Text   style={{fontSize:15,color:"white",lineHeight: 15,}}>Add </Text>
  <Text   style={{fontSize:15,color:"white",lineHeight: 15,}}>Income </Text>
  </View>
- <Icon name="plus-circle" size={30} color='green'/>
+ <Icon name="plus-circle" size={30} color='#5cb85c'/>
  
 
  </View>
@@ -125,7 +125,7 @@ class CalendarMenu extends React.Component {
   <TouchableOpacity  onPress={() => {this.setEModalVisible(!this.state.EmodalVisible)}}>
   <View style={{flexDirection:'row',padding:10}}>
       
- <Icon  name='minus-circle' size={30} color='red'/>
+ <Icon  name='minus-circle' size={30} color='#d9534f'/>
       <View style={{marginLeft:5}}>
  <Text   style={{fontSize:15,color:"white",lineHeight: 15,}}>Add </Text>
  <Text   style={{fontSize:15,color:"white",lineHeight: 15,}}>Expense</Text>
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
 
     // color: 'rgba(96,100,109, 1)',
     // height:80,
-    backgroundColor:  'rgb(255,150,0)',
+    backgroundColor:  '#f0ad4e',
   },
   prevContainer: {
     flex: 1,

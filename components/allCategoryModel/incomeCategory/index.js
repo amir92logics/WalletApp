@@ -40,27 +40,7 @@ class IncomeCategory extends React.Component {
       AlertIOS.alert(msg);
     }
   }
-  // componentDidMount(){
-  //    SQLite.DEBUG(true);
-  //       SQLite.enablePromise(true);
-    
-  //       SQLite.openDatabase({
-  //           name: "WalletApp",
-  //           location: "default"
-  //       }).then((db) => {
-  //           // console.log("Database open!");
-  //           db.transaction((tx) => {
-  //             tx.executeSql('CREATE TABLE IF NOT EXISTS Income_Category(id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20), description VARCHAR(255))');
-  //         }).then(() => {
-  //           console.log('database created successfully!!!')
-  //         }).catch(error => {
-  //             console.log(error);
-  //         });
-          
-     
-  //       });
-  
-  // }
+
   addIncomeCategory=()=>{
     const {incomeCategoryInput, incomeDescriptionInput}=this.state;
          
@@ -81,12 +61,12 @@ class IncomeCategory extends React.Component {
   else{
     SQLite.DEBUG(true);
         SQLite.enablePromise(true);
-    
+        // console.log( SQLite);
         SQLite.openDatabase({
             name: "WalletApp",
             location: "default"
         }).then((db) => {
-            // console.log("Database open!");
+            console.log( db);
             db.transaction((tx) => {
               tx.executeSql('CREATE TABLE IF NOT EXISTS Income_Category(id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20), description VARCHAR(255))');
           }).then(() => {
@@ -114,11 +94,60 @@ class IncomeCategory extends React.Component {
           }).catch(error => {
               console.log(error);
           });
+        // db.close();
          
         });
   }
+  // this.props.add()
   
-  
+  // this.allcategory();
+          }
+          allcategory=()=>{
+            SQLite.DEBUG(true);
+    SQLite.enablePromise(true);
+
+    SQLite.openDatabase({
+        name: "WalletApp",
+        location: "default"
+    }).then((db) => {
+     db.transaction((tx) => {
+      tx.executeSql('CREATE TABLE IF NOT EXISTS Income_Category(id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20), description VARCHAR(255))');
+    }).then(() => {
+      console.log('database created successfully!!!')
+    }).catch(error => {
+        console.log(error);
+    });
+      db.transaction((tx) => {
+        tx.executeSql(
+         'SELECT * FROM Income_Category',
+         [],
+         (tx, results) => {
+           var len = results.rows.length;
+           // var len = results.rows.length;
+           var record =[];
+           for (let i = 0; i < len; i++) {
+                let row = results.rows.item(i);
+             
+                record.push(row.category)
+               
+            }
+            console.log("data catagory: "+record )
+            // this.props.add5(record);
+
+            // this.setState({allIncomeCategory: record});
+           // console.log('len',len);
+           if (len > 0) {
+             // console.log(results.rows.item(0).category);
+            
+           }else{
+             // console.log('No user found');
+            
+           }
+         }
+       );
+       });
+    });
+
           }
  categoryChange(value){
             this.setState({
@@ -200,8 +229,8 @@ const mapStateToProps = state => {
 }
 const mapDispatchToProps = dispatch => {
   return {
-    add: () => {
-      dispatch(incomeCategoryAction())
+    add: (m) => {
+      dispatch(incomeCategoryAction(m))
     }
     
   }

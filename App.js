@@ -1,26 +1,19 @@
 
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, StatusBar, StyleSheet, View ,Text} from 'react-native';
-// import { AppLoading, Asset, Font, Icon } from 'expo';
-import AppNavigator from './navigation/AppNavigator';
 import FirstNavbar from './components/firstnavbar';
-// import { createStackNavigator, createAppContainer } from "react-navigation";
-import HomeScreen from './screens/incomeScreen';
 import CalendarMenu from './components/calendarMenu';
 import Calendar from './components/calendar';
-// import Table from "./components/table";
 import configureStore  from './components/store';
 import {Provider} from 'react-redux';
-// const AppContainer = createAppContainer(AppNavigator);
-import SQLite from 'react-native-sqlite-storage';
 import { createAppContainer} from 'react-navigation';  
 import { createMaterialTopTabNavigator } from 'react-navigation-tabs';
 import IncomeScreen from './screens/incomeScreen';  
 import BalanceScreen from './screens/balanceScreen'
 import expenseScreen from './screens/expenseScreen';  
-import { ScrollView } from 'react-native-gesture-handler';
-//import all the screens we are going to switch   
+// import LodingScreen from './lodingScreen'
+import SplashScreen from 'react-native-splash-screen'
 const store = configureStore()
    
 const TopNavugation = createMaterialTopTabNavigator({  
@@ -41,97 +34,23 @@ export default class App extends React.Component {
 
    
   }
-//   componentDidMount() {
-//     SQLite.DEBUG(true);
-//     SQLite.enablePromise(true);
-
-//     SQLite.openDatabase({
-//         name: "TestDatabase",
-//         location: "default"
-//     }).then((db) => {
-//         // console.log("Database open!");
-//         db.transaction(function(txn) {
-//       txn.executeSql(
-//         "SELECT name FROM sqlite_master WHERE type='table' AND name='table_user'",
-//         [],
-//         function(tx, res) {
-//           // console.log('item:', res.rows.length);
-//           if (res.rows.length == 0) {
-//             txn.executeSql('DROP TABLE IF EXISTS table_user', []);
-//             txn.executeSql(
-//               'CREATE TABLE IF NOT EXISTS table_user(user_id INTEGER PRIMARY KEY AUTOINCREMENT, user_name VARCHAR(20), user_contact INT(10), user_address VARCHAR(255))',
-//               []
-//             );
-            
-//           }
-               
-                 
-//                     tx.executeSql(
-//                       'INSERT INTO table_user (user_name, user_contact, user_address) VALUES (?,?,?)',
-//                       ['Malik',5445555, "fsadfasdfasdf"],
-//                       (tx, results) => {
-//                         // console.log('Results', results.rowsAffected);
-//                         if (results.rowsAffected > 0) {
-//                         //  console.log('success')
-//                         } else {
-//                           // console.log('Registration Failed');
-//                         }
-//                       }
-//                     );
-               
-//                   tx.executeSql(
-//                     'SELECT * FROM table_user',
-//                     [],
-//                     (tx, results) => {
-//                       var len = results.rows.length;
-//                       // console.log('len',len);
-//                       if (len > 0) {
-//                         // console.log(results.rows.item(0).user_name);
-//                         this.setState({
-//                          user_name:results.rows.item(0).user_name,
-//                         });
-//                         this.setState({
-//                          user_contact:results.rows.item(0).user_contact,
-//                         });
-//                         this.setState({
-//                          user_address:results.rows.item(0).user_address,
-//                         });
-//                       }else{
-//                         // console.log('No user found');
-//                         this.setState({
-//                           user_name:'',
-//                           user_contact:'',
-//                           user_address:'',
-//                         });
-//                       }
-//                     }
-//                   );
-               
-           
-         
-//         }
-//       );
-//     });
-//     });
-// }
-
+  componentDidMount() {
+    // do stuff while splash screen is shown
+      // After having done stuff (such as async tasks) hide the splash screen
+      SplashScreen.hide();
+  }
   render() {
-  
-    // if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
-    //   return (
-    //     <AppLoading
-    //       startAsync={this._loadResourcesAsync}
-    //       onError={this._handleLoadingError}
-    //       onFinish={this._handleFinishLoading}
-    //     />
-    //   );
-    // } else {
+    //  const App=()=>{ 
+    //    useEffectcreate:()=>{
+    //      SplashScreen.hide();
+        
+    //    }, InputAccessoryView: []
+    //    )
       return (
-        <View style={styles.container}>
-          {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+        // <View style={styles.container}>
+        //   {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
 
           <Provider store={store}>
-      
       <FirstNavbar/>
     
 
@@ -139,26 +58,25 @@ export default class App extends React.Component {
          
           <CalendarMenu />
          <Calendar />  
-        
         </Provider>
-        </View>
+         
       );
     }
   }
 
  
 // }
-
+// export default App;
 const styles = StyleSheet.create({
   container: {
     // height:8,
-    flex:1,
+    // flex:1,
     // flexWrap: 'wrap', 
     // alignItems: 'flex-start',
     // flexDirection:'column',
     // justifyContent:"space-between",
     // color:'red',
-    backgroundColor: '#fff',
+    backgroundColor: '#0275d8',
   },
 });
 

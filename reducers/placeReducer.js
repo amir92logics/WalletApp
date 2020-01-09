@@ -1,4 +1,4 @@
-import {ADD_INCOME_CATEGORY, ADD_EXPENSE_CATEGORY, ADD_DATE, ADD_PLACE, ADD_INCOME,ADD_INCOMEARRAY,ADD_EXPENSE,ADD_EXPENSEARRAY } from '../actions/types';
+import {ADD_EXPENSE_SUM,ADD_INCOME_SUM,ADD_BALANCE_BY_DATE,ADD_EXPENSE_BY_DATE, ADD_INCOME_BY_DATE, ADD_INCOME_CATEGORY, ADD_EXPENSE_CATEGORY, ADD_DATE, ADD_PLACE, ADD_INCOME,ADD_INCOMEARRAY,ADD_EXPENSE,ADD_EXPENSEARRAY } from '../actions/types';
 import moment from 'moment';
 
 const initialState = {
@@ -8,91 +8,93 @@ const initialState = {
   allExpenses: 0,
   places: [],
   date:[],
-  // date:moment().format("L"),
+  date:moment().format("L"),
   allIncomeCategory:[],
-  allExpenseCategory:[]
+  allExpenseCategory:[],
+  showIncomeByDate: [],
+  showExpenseByDate: [],
+  showBalanceByDate: 0,
+  showIncomeSumByDate: 0,
+  showExpenseSumByDate: 0,
+  
 };
 
 const placeReducer = (state = initialState, action) => {
   switch(action.type) {
-    case ADD_INCOME_CATEGORY:
+    case ADD_EXPENSE_SUM:
+     return {
+        ...state,
+        showExpenseSumByDate: action.payload
+       
+      };
+      case ADD_INCOME_SUM:
      
-    console.log('ADD_INCOME_CATEGORY Reducer');  
+
+        return {
+            ...state,
+           showIncomeSumByDate: action.payload
+          };
+      case ADD_BALANCE_BY_DATE:
+     
+      return {
+          ...state,
+           showBalanceByDate: action.payloa
+        };
+      case ADD_EXPENSE_BY_DATE:
+     
+
+        return {
+            ...state,
+           showExpenseByDate: action.payload
+          };
+      case ADD_INCOME_BY_DATE:
+     
+        return {
+            ...state,
+           showIncomeByDate: action.payload
+          };
+      case ADD_INCOME_CATEGORY:
+     
     return {
         ...state,
-        // places: state.places.concat({
-        //   key: Math.random(),
-        allIncomeCategory: action.payload
-        // })
+         allIncomeCategory: action.paylo
       };
       case ADD_EXPENSE_CATEGORY:
      
-        console.log('ADD_INCOME_CATEGORY Reducer');  
+  
         return {
             ...state,
-            // places: state.places.concat({
-            //   key: Math.random(),
-            allExpenseCategory: action.payload
-            // })
+           allExpenseCategory: action.payload
           };
       case ADD_DATE:
-     
-    // console.log('date Reducer');  
-    return {
+        return {
         ...state,
-        // places: state.places.concat({
-        //   key: Math.random(),
-        date: action.payload
-        // })
+         date: action.paylo
       };
     case ADD_PLACE:
-     
-    // console.log('Income Reducer');  
-    return {
+         return {
         ...state,
-        // places: state.places.concat({
-        //   key: Math.random(),
-        places: action.payload
-        // })
+         places: action.paylo
       };
       case ADD_INCOME:
-     
-      // console.log("Income Reducer");  
-      return {
+        return {
           ...state,
-          // places: state.places.concat({
-          //   key: Math.random(),
-          Income: action.payload
-          // })
+           Income: action.payloa
         };
         case ADD_INCOMEARRAY:
-     
-        // console.log('All Incomes Reducer');  
-        return {
+       return {
             ...state,
-            // places: state.places.concat({
-            //   key: Math.random(),
-            allIncomes: action.payload
-            // })
+           allIncomes: action.payload
           };
           case ADD_EXPENSE:
-          // console.log("Expense Reducer"); 
       return {
           ...state,
-          // places: state.places.concat({
-          //   key: Math.random(),
-          Expense: action.payload
-          // })
+           Expense: action.payloa
         };
         case ADD_EXPENSEARRAY:
-     
-        // console.log('All Expense Reducer');  
         return {
             ...state,
-            // places: state.places.concat({
-            //   key: Math.random(),
-            allExpense: action.payload
-            // })
+           allExpense: action.payload
           };
     default:
       return state;

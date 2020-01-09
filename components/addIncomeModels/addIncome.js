@@ -14,12 +14,12 @@ import {
 } from 'react-native';
 import SQLite from 'react-native-sqlite-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { Dropdown } from 'react-native-material-dropdown';
 import { connect } from 'react-redux';
 import { incomeCategoryAction } from '../../actions/allIncomeCategory';
 import moment from 'moment';
-// import  Income_Category from '../incomeCategory';
-// import incomeCategory from '../allCategoryModel/incomeCategory';
+import { showIncomeByDateAction } from '../../actions/showIncomeByDateAction';
+import { showIncomeSumByDateAction } from '../../actions/showIncomeSumByDateActon';
+
 class AddIncome extends React.Component {
   constructor(props){
       super(props);
@@ -58,14 +58,14 @@ class AddIncome extends React.Component {
   }
   addIncome=()=>{
     const {selectIncomeCategoryInput, addAmountInput}=this.state;
-         
-  // if(selectIncomeCategoryInput==="" ){
-  //   this.categoryRef.current.focus();
-  //   this.setState({
-  //     selectIncomeCategoryIconColorState: 'red'
-  //   })
+       console.log("Category: "+selectIncomeCategoryInput+" Amount: "+ addAmountInput)   
+  if(selectIncomeCategoryInput.length <= 0 ){
+    // this.categoryRef.current.focus();
+    this.setState({
+      selectIncomeCategoryIconColorState: 'red'
+    })
  
-  // }
+  }
   if(addAmountInput===0){
     this.amountRef.current.focus();
     this.setState({
@@ -97,7 +97,7 @@ class AddIncome extends React.Component {
           });
             db.transaction((tx) => {
               // var date=moment().format("L");
-              var date="12/03/2019";
+              let date=moment().format("L");
             tx.executeSql(
               'INSERT INTO Income (category,amount,date) VALUES (?,?,?)',
               [selectIncomeCategoryInput,addAmountInput, date],
@@ -137,8 +137,70 @@ amountChange(value){
   })
 }
   closeIncomeModel=()=>{
-    // this.props.fetchData();
+// console.log("Database open Now!");
+
+    this.updateIncomeScreen();
     this.props.setModel(!this.props.modalVisible)
+  }
+  updateIncomeScreen=()=>{
+    SQLite.DEBUG(true);
+    SQLite.enablePromise(true);
+  
+    SQLite.openDatabase({
+        name: "WalletApp",
+        location: "default"
+    }).then((db) => {
+     db.transaction((tx) => {
+      tx.executeSql('CREATE TABLE IF NOT EXISTS Income (id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20),amount INT(10),date DATE)');
+  }).then(() => {
+    console.log('database created successfully!!!')
+  }).catch(error => {
+      console.log(error);
+  });
+  db.transaction((tx) => {
+    tx.executeSql('CREATE TABLE IF NOT EXISTS Income (id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20),amount INT(10),date DATE)');
+  }).then(() => {
+    console.log('database created successfully!!!')
+  }).catch(error => {
+      console.log(error);
+  });
+  db.transaction((tx) => {
+      var date = moment().format("L");
+     
+        tx.executeSql(
+         'SELECT * FROM Income WHERE  date = ?',
+         [date],
+         (tx, results) => {
+          // console.log(results.rows)
+           var len = results.rows.length;
+          
+         
+
+     if (len > 0) {
+      var temp1 = [];
+      for (let i = 0; i < results.rows.length; ++i) {
+        temp1.push(results.rows.item(i));
+      }
+      this.props.dispatchIncomeByDate(temp1);
+      var incomeSum = 0;
+      for (let i = 0; i < len; i++) {
+           let row = results.rows.item(i);
+        
+           incomeSum+=row.amount
+          
+       }
+      //  this.setState({allIncomeAmountArray: incomeSum});
+       //  console.log('incomeSum:'+incomeSum);
+          this.props.dispatchIncomeSumByDate(incomeSum);
+            
+           }else{
+             // console.log('No user found');
+            
+           }
+         }
+       );
+       });
+    });
   }
   fetchData=()=>{
     console.log("Database open Now!");
@@ -151,7 +213,13 @@ amountChange(value){
         location: "default"
     }).then((db) => {
      db.transaction((tx) => {
-        // console.log("Database open Now!");
+      tx.executeSql('CREATE TABLE IF NOT EXISTS Income (id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20),amount INT(10),date DATE)');
+  }).then(() => {
+    console.log('database created successfully!!!')
+  }).catch(error => {
+      console.log(error);
+  });
+  db.transaction((tx) => {
         tx.executeSql(
          'SELECT * FROM Income_Category',
          [],
@@ -273,6 +341,13 @@ const mapDispatchToProps = dispatch => {
     add5: () => {
       dispatch(incomeCategoryAction())
     },
+    dispatchIncomeByDate: (data) => {
+      dispatch(showIncomeByDateAction(data))
+    },
+    dispatchIncomeSumByDate: (name) => {
+      dispatch(showIncomeSumByDateAction(name))
+    },
+
     
   }
 }

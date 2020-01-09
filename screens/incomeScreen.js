@@ -12,16 +12,8 @@ import {
 } from 'react-native';
 import {connect} from 'react-redux';
 import SQLite from 'react-native-sqlite-storage';
-
-// import ReactTable from "react-table";
-// import * as axios from 'axios';
-// import { WebBrowser } from 'expo';
-// import Table from 'react-native-simple-table';
-// import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
-// import "Platform";
-import { MonoText } from '../components/StyledText';
-import { ThemeProvider } from 'react-native-elements';
-
+import { showIncomeByDateAction } from '../actions/showIncomeByDateAction';
+import moment from 'moment';
  class IncomeScreen extends React.Component {
   static navigationOptions = {
     header: null,
@@ -32,25 +24,63 @@ import { ThemeProvider } from 'react-native-elements';
       Income: [],
       isLoading: true,
       allIncome: [],
-    
-      tableData: [
-        ['1', '2', '3', '4'],
-        ['a', 'b', 'c', 'd'],
-        ['1', '2', '3', '456\n789'],
-        ['a', 'b', 'c', 'd']
-      ]
+      dateContext:moment(),
+      currentDate:moment().format("L"),
   }
+  this.incomeData = this.incomeData.bind(this);
 }
+month=()=>{
+  return this.state.dateContext.format("MMMM");
+  }
 componentDidMount(){
-  this.incomeByDate();
+  const { currentDate, showIncomeByDate } = this.props;
+ this.fetchData(currentDate);
+// SQLite.DEBUG(true);
+//   SQLite.DEBUG(true);
+//   SQLite.enablePromise(true);
+
+//   SQLite.openDatabase({
+//       name: "WalletApp",
+//       location: "default"
+//   }).then((db) => {
+//    db.transaction((tx) => {
+      
+//     tx.executeSql('DROP TABLE IF EXISTS Income');
+//   }).then(() => {
+//     console.log('database created successfully!!!')
+//   }).catch(error => {
+//       console.log(error);
+//   });
+
+    
+//   });
 }
-componentWillReceiveProps(){
-  this.fetchData();
 
-  // this.incomeByDate();}
-fetchData=()=>{
-  // console.log("Database open Now!");
+incomeData=(value)=>{
+  let data =value.map((d, k)=>{
+    // console.log("data: "+typeof(this.state.allIncome));
 
+       return(
+        <View key={k} style={{ flex: 1, flexDirection: "row", alignSelf: "stretch" }} >
+        <Text style={{ flex: 1, alignSelf: 'stretch' ,borderWidth: 2, borderColor: 'grey',textAlign:'center'}}>{d.category}</Text>
+        <Text style={{ flex: 1, alignSelf: 'stretch' ,borderWidth: 2, borderColor: 'grey',textAlign:'center'}}>{d.amount}</Text>
+         <Text style={{ flex: 1, alignSelf: 'stretch' ,borderWidth: 2, borderColor: 'grey',textAlign:'center'}}>{d.date}</Text>
+         </View>
+       )
+  })
+  return data
+}
+fetchData=(value)=>{
+  // console.log("Database open Now!"+value);
+let currentMonth = moment(value).format("MM");
+// console.log("Current Month is: "+ currentDate)
+let currentYear = moment(value).format("Y");
+// console.log("Current Year is: "+ currentYear)
+
+let startDate = currentMonth+"/"+"01"+"/"+currentYear;
+let endDate = currentMonth+"/"+"31"+"/"+currentYear 
+// console.log("startDate: "+startDate + "EndDate is: "+endDate)
+SQLite.DEBUG(true);
   SQLite.DEBUG(true);
   SQLite.enablePromise(true);
 
@@ -59,34 +89,33 @@ fetchData=()=>{
       location: "default"
   }).then((db) => {
    db.transaction((tx) => {
-      console.log("Database open Now!");
-      tx.executeSql(
-       'SELECT * FROM Income',
-       [],
-       (tx, results) => {
-        console.log(results.rows)
-         var len = results.rows.length;
-         // var len = results.rows.length;
-         var record =[];
-         var temp = [];
-         for (let i = 0; i < results.rows.length; ++i) {
-           temp.push(results.rows.item(i));
-         }
-    //  })
-        //  for (let i = 0; i < len; i++) {
-        //       let row = results.rows.item(i);
-           
-        //       record.push(row.category)
-             
-        //   }
-          
-          // this.props.add5(record);
+      
+     
 
-          this.setState({allIncome: temp});
-         // console.log('len',len);
-         if (len > 0) {
-           // console.log(results.rows.item(0).category);
-          
+    tx.executeSql('CREATE TABLE IF NOT EXISTS Income (id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20),amount INT(10),date DATE)');
+  }).then(() => {
+    console.log('database created successfully!!!')
+  }).catch(error => {
+      console.log(error);
+  });
+  db.transaction((tx) => {
+      tx.executeSql(
+       'SELECT * FROM Income WHERE  date BETWEEN ? AND ?',
+       [startDate, endDate],
+       (tx, results) => {
+        // console.log(results.rows)
+         var len = results.rows.length;
+        
+        
+   if (len > 0) {
+    var temp = [];
+    for (let i = 0; i < results.rows.length; ++i) {
+      temp.push(results.rows.item(i));
+    }
+ // console.log(temp);
+
+   //  this.incomeData(temp);
+    this.props.dispatchIncomeByDate(temp); 
          }else{
            // console.log('No user found');
           
@@ -97,85 +126,23 @@ fetchData=()=>{
   });
 }
 
-incomeByDate=()=>{
-  SQLite.DEBUG(true);
-  SQLite.enablePromise(true);
 
-  SQLite.openDatabase({
-      name: "WalletApp",
-      location: "default"
-  }).then((db) => {
-   db.transaction((tx) => {
-      console.log("Database open Now!");
-      tx.executeSql(
-       'SELECT * FROM Income WHERE  date = ?',
-        ['12/03/2019'],
-       (tx, results) => {
-        console.log(results.rows)
-         var len = results.rows.length;
-         // var len = results.rows.length;
-         var record =[];
-         var temp = [];
-         for (let i = 0; i < results.rows.length; ++i) {
-           temp.push(results.rows.item(i));
-         }
-    //  })
-        //  for (let i = 0; i < len; i++) {
-        //       let row = results.rows.item(i);
-           
-        //       record.push(row.category)
-             
-        //   }
-          
-          // this.props.add5(record);
-
-          this.setState({allIncome: temp});
-         // console.log('len',len);
-         if (len > 0) {
-           // console.log(results.rows.item(0).category);
-          
-         }else{
-           // console.log('No user found');
-          
-         }
-       }
-     );
-     });
-  });
-}
   render() {
 
-      let incomeList=<Text style={{textAlign:'center',fontWeight:"bold"}}>{"Empty List"}</Text>;
-
-
-    if(this.props.Income!=0){
-
-      incomeList =this.props.Income
-    }
-    let data =this.state.allIncome.map((d, k)=>{
-      console.log("data: "+typeof(this.state.allIncome));
-
-         return(
-          <View key={k} style={{ flex: 1, flexDirection: "row", alignSelf: "stretch" }} >
-          <Text style={{ flex: 1, alignSelf: 'stretch' ,borderWidth: 2, borderColor: 'grey',textAlign:'center'}}>{d.category}</Text>
-          <Text style={{ flex: 1, alignSelf: 'stretch' ,borderWidth: 2, borderColor: 'grey',textAlign:'center'}}>{d.amount}</Text>
-           <Text style={{ flex: 1, alignSelf: 'stretch' ,borderWidth: 2, borderColor: 'grey',textAlign:'center'}}>{d.date}</Text>
-           </View>
-         )
-    })
+    
   
           
     return (
       <View >
        <ScrollView>
        <View style={{marginLeft:5,marginRight:5}} >
-          <Text style={{textAlign:'center', fontWeight:"bold",color:'green',marginBottom:3,fontSize:25}}>All Incomes</Text>
+          <Text style={{textAlign:'center', fontWeight:"bold",color:'#5cb85c',marginBottom:3,fontSize:25}}>All Incomes</Text>
           <View style={{ flex: 1,flexDirection: "row", alignSelf: 'stretch' }}>
           <Text style={{ flex: 1, alignSelf: 'stretch',borderWidth: 2, borderColor: 'grey',textAlign:'center',fontWeight:"bold"}}>Category</Text>
           <Text style={{flex: 1,alignSelf: 'stretch', borderWidth: 2, borderColor: 'grey',textAlign:'center',fontWeight:"bold"}}>Amount</Text>
           <Text style={{flex: 1, alignSelf: 'stretch', borderWidth: 2, borderColor: 'grey',textAlign:'center',fontWeight:"bold"}}>Date</Text>
           </View>
-         {data}
+         {this.incomeData(this.props.showIncomeByDate)}
          
         </View> 
         </ScrollView>
@@ -185,13 +152,19 @@ incomeByDate=()=>{
 }
 const mapStateToProps = state => {
   return {
-    // next: state.date.date,
-    places: state.places.places,
-    Income: state.places.Income,
-    Expense: state.places.Expense
+    currentDate: state.places.date,
+    showIncomeByDate: state.places.showIncomeByDate,
   }
 }
-export default connect(mapStateToProps)(IncomeScreen);
+const mapDispatchToProps = dispatch => {
+  return {
+    dispatchIncomeByDate: (data) => {
+      dispatch(showIncomeByDateAction(data))
+    }
+
+  }
+}
+export default connect(mapStateToProps,mapDispatchToProps)(IncomeScreen);
 
 
 const styles = StyleSheet.create({

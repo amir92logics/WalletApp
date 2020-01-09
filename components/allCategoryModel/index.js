@@ -10,7 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableHighlight,
-  View,Alert,Image
+  View,Alert,Image, TouchableNativeFeedbackBase
 } from 'react-native';
 import IncomeCategory from './incomeCategory';
 import ExpenseCategory from './expenseCategory'
@@ -34,6 +34,8 @@ class AllCategory extends React.Component {
       };
       this.renderAllExpenseCategory=this.renderAllExpenseCategory.bind(this);
       this.IncomeCategoryModel=this.IncomeCategoryModel.bind(this);
+      this.deleteExpenseCategory = this.deleteExpenseCategory.bind(this);
+      this.deleteIncomeCategory = this.deleteIncomeCategory.bind(this);
       this.ExpenseCategoryModel=this.ExpenseCategoryModel.bind(this)
   }
   IncomeCategoryModel(visible) {
@@ -61,7 +63,15 @@ class AllCategory extends React.Component {
         location: "default"
     }).then((db) => {
      db.transaction((tx) => {
-        console.log("Database open Now!");
+        // console.log("Database open Now!");
+        // db.transaction((tx) => {
+          tx.executeSql('CREATE TABLE IF NOT EXISTS Income_Category(id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20), description VARCHAR(255))');
+      }).then(() => {
+        console.log('database created successfully!!!')
+      }).catch(error => {
+          console.log(error);
+      });
+        db.transaction((tx) => {
         tx.executeSql(
          'SELECT * FROM Income_Category',
          [],
@@ -70,13 +80,23 @@ class AllCategory extends React.Component {
            // var len = results.rows.length;
            var record =[];
            for (let i = 0; i < len; i++) {
-                let row = results.rows.item(i);
-             
-                record.push(row.category)
-               
-            }
-            // this.props.add5(record);
-
+                var row = results.rows.item(i);
+                // var id = row.id;
+                // console.log("row.id",row.id)
+                for (let j = row.id; j === row.id ; j++) {
+                record.push(
+                  <View key={j} style={styles.incomeCategoryContainer}>
+                  <Text>{(row.category.length > 10)? row.category.substring(0,10):row.category}</Text>
+                  <View style={styles.btnContainer} >
+                    <TouchableOpacity  onPress={(e)=>this.deleteIncomeCategory(e,j)}>
+                      <Text>Delete</Text>
+                    </TouchableOpacity>
+                   
+                  </View>
+                       </View>
+                    )
+                }
+              }
             this.setState({allIncomeCategory: record});
            // console.log('len',len);
            if (len > 0) {
@@ -101,7 +121,15 @@ class AllCategory extends React.Component {
     }).then((db) => {
      db.transaction((tx) => {
         // console.log("Database open!");
-        tx.executeSql(
+      
+          tx.executeSql('CREATE TABLE IF NOT EXISTS Expense_Category(id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20), description VARCHAR(255))');
+        }).then(() => {
+          console.log('database created successfully!!!')
+        }).catch(error => {
+            console.log(error);
+        });
+          db.transaction((tx) => {
+            tx.executeSql(
          'SELECT * FROM Expense_Category',
          [],
          (tx, results) => {
@@ -109,13 +137,28 @@ class AllCategory extends React.Component {
            // var len = results.rows.length;
            var record =[];
            for (let i = 0; i < len; i++) {
-                let row = results.rows.item(i);
-             
-                record.push(row.category)
-               
+                var row = results.rows.item(i);
+                // var id = row.id;
+                // console.log("row.id",row.id)
+                for (let j = row.id; j === row.id ; j++) {
+                record.push(
+                <View key={j} style={styles.incomeCategoryContainer}>
+        
+                <Text>{(row.category.length > 10)? row.category.substring(0,10):row.category}</Text>
+                
+                <View style={styles.btnContainer}>
+                <TouchableOpacity key={i} onPress={(e)=>this.deleteExpenseCategory(e,j)}>
+                    <Text>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+                     </View>
+                    )
+                }
+                // }
+                // })
             }
             this.setState({allExpenseCategory: record});
-           // console.log('len',len);
+          //  console.log('record',record);
            if (len > 0) {
              // console.log(results.rows.item(0).category);
             
@@ -136,34 +179,106 @@ class AllCategory extends React.Component {
   this.fetchData();  
   this.fetchExpenseCategory();
  }
+ deleteIncomeCategory=(e, id)=>{
+  console.log(id)
+  SQLite.DEBUG(true);
+  SQLite.enablePromise(true);
+  
+  SQLite.openDatabase({
+      name: "WalletApp",
+      location: "default"
+  }).then((db) => {
+   db.transaction((tx) => {
+      // console.log("Database open!");
+      tx.executeSql(
+        'DELETE FROM  Income_Category WHERE id=?',
+        [id],
+        (tx, results) => {
+          console.log('Results', results.rowsAffected);
+          if (results.rowsAffected > 0) {
+            this.notifyMessage("Category deleted successfully!!!")
+            // this.setState({allExpenseCategory:[]})
+          }else{
+              this.notifyMessage("Failed to delete Category!!!")
+          
+         }
+       }
+     );
+     });
+  });
+  this.fetchData(); 
+   }
+  
+   renderAllExpenseCategory=()=>{
+    // this.props.allIncomeCategory;
+    const {allExpenseCategory}= this.state;
+    console.log("allExpenseCategory: ",allExpenseCategory)
+    return(
+    <>
+   {allExpenseCategory.map((data, key)=>{
+     console.log("data: ",data)
+      return(
+        <View key={key}>
+         {data}
+         </View>
+      )
+        })
+   }
+   </>
+   );
+   }
+ deleteExpenseCategory=(e, id)=>{
+console.log(id)
+SQLite.DEBUG(true);
+SQLite.enablePromise(true);
+
+SQLite.openDatabase({
+    name: "WalletApp",
+    location: "default"
+}).then((db) => {
+ db.transaction((tx) => {
+    // console.log("Database open!");
+    tx.executeSql(
+      'DELETE FROM  Expense_Category WHERE id=?',
+      [id],
+      (tx, results) => {
+        console.log('Results', results.rowsAffected);
+        if (results.rowsAffected > 0) {
+          this.notifyMessage("Category deleted successfully!!!")
+          // this.setState({allExpenseCategory:[]})
+        }else{
+            this.notifyMessage("Failed to delete Category!!!")
+        
+       }
+     }
+   );
+   });
+});
+this.fetchExpenseCategory(); 
+ }
 
  renderAllExpenseCategory=()=>{
   // this.props.allIncomeCategory;
   const {allExpenseCategory}= this.state;
+  console.log("allExpenseCategory: ",allExpenseCategory)
   return(
   <>
  {allExpenseCategory.map((data, key)=>{
-    return (
-      <View key={key} style={styles.incomeCategoryContainer}>
-        
- <Text>{data}</Text>
- <View style={styles.btnContainer}>
-   <TouchableOpacity>
-     <Text>Delete</Text>
-   </TouchableOpacity>
-   <TouchableOpacity>
-     <Text>Edit</Text>
-   </TouchableOpacity>
- </View>
-      </View>
+   console.log("data: ",data)
+    return(
+      <View key={key}>
+       {data}
+       </View>
     )
-  })
+      })
  }
  </>
  );
  }
    render(){
-    //  console.log('my data: '+ IncomeCat)
+    var str = 'Some very long string';
+    if(str.length > 10) str = str.substring(0,10);
+     console.log('str: '+ str)
      const {allIncomeCategory}= this.state;
      const incomeCategory= allIncomeCategory.map((data, key)=>{
       // console.log('Income Category: '+this.props.allIncomeCategory);
@@ -195,20 +310,25 @@ class AllCategory extends React.Component {
             Alert.alert('Modal has been closed.');
           }}
           >
+               <View style={styles.allCategory}>
+                 <View style={{justifyContent: 'center', alignItems: 'center'}}>
+               <Text style={styles.incomeCategoryText}>INCOME CATEGORY LIST</Text>
+               </View>
             <ScrollView>
             <View style={styles.allIncomeCategory}>
-            <Text style={styles.incomeCategoryText}>INCOME CATEGORY</Text>
-             {incomeCategory}
+             {this.state.allIncomeCategory}
              </View>
              </ScrollView>
+             <View style={{justifyContent: 'center', alignItems: 'center', marginTop: 5}}>
+             <Text style={styles.expenseCategoryText}>EXPENSE CATEGORY LIST</Text>
+             </View>
              <ScrollView>
             <View style={styles.allExpenseCategory}>
-            <Text style={styles.incomeCategoryText}>Expense CATEGORY</Text>
-             {this.renderAllExpenseCategory()}
+             {this.state.allExpenseCategory}
              </View>
              </ScrollView>
 
-           
+            
               <TouchableOpacity
                 style={styles.incomeBtn}
                 onPress={()=>this.IncomeCategoryModel(!this.state.incomeCategoryState)}>
@@ -224,7 +344,7 @@ class AllCategory extends React.Component {
                 onPress={() => this.props.setAllCategoryModel(!this.props.allCategoryState)}>
                 <Text style={styles.homeText}>Home</Text>
               </TouchableOpacity>
-           
+              </View>
         </Modal>
 </>
        
@@ -263,24 +383,47 @@ export default connect(mapStateToProps,mapDispatchToProps)(AllCategory);
     alignItems: 'center',
 
   },
+  allCategory:{
+    flex: 1,
+    justifyContent:'space-between',
+   backgroundColor: 'lightblue',
+  },
   btnContainer:{
-  flexDirection: 'row'
+  flexDirection: 'row',
+  backgroundColor: '#d9534f',
+  borderRadius: 5,
+  height:30,
+  width:60,
+  justifyContent: 'center',
+  alignItems: 'center'
   },
   allIncomeCategory:{
    justifyContent: 'center',
-   backgroundColor: 'lightblue',
+  
    alignItems: 'center'
   },
   allExpenseCategory:{
     // marginTop: 10,
     justifyContent: 'center',
-    backgroundColor: 'lightgreen',
+    // backgroundColor: 'lightgreen',
     alignItems: 'center'
    },
   incomeCategoryText:{
     fontWeight: 'bold',
     fontSize: 20,
-    color: 'green'
+    color: '#5cb85c',
+    borderBottomWidth: 2,
+    borderBottomColor: '#5cb85c',
+
+
+  },
+  expenseCategoryText:{
+    fontWeight: 'bold',
+    fontSize: 20,
+    color: '#d9534f',
+    borderBottomWidth: 2,
+    borderBottomColor: '#d9534f',
+
   },
   incomeCategoryContainer:{
  flexDirection: 'row',

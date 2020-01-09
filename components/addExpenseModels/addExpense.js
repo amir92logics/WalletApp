@@ -18,8 +18,8 @@ import { Dropdown } from 'react-native-material-dropdown';
 import { connect } from 'react-redux';
 import { ExpenseCategoryAction } from '../../actions/allExpenseCategory';
 import moment from 'moment';
-// import  Expense_Category from '../ExpenseCategory';
-// import ExpenseCategory from '../allCategoryModel/ExpenseCategory';
+import { showExpenseByDateAction } from '../../actions/showExpenseByDateAction';
+import { showExpenseSumByDateAction } from '../../actions/showExpenseSumByDateAction';
 class AddExpense extends React.Component {
   constructor(props){
       super(props);
@@ -54,15 +54,15 @@ class AddExpense extends React.Component {
   }
   addExpense=()=>{
     const {selectExpenseCategoryInput, addAmountInput}=this.state;
-         
-  // if(selectExpenseCategoryInput==="" ){
-  //   this.categoryRef.current.focus();
-  //   this.setState({
-  //     selectExpenseCategoryIconColorState: 'red'
-  //   })
+          console.log("Category: "+selectExpenseCategoryInput+" Amount: "+ addAmountInput)
+  if(selectExpenseCategoryInput.length <= 0){
+  // this.categoryRef.current.focus();
+    this.setState({
+      selectExpenseCategoryIconColorState: 'red'
+    })
  
-  // }
-  if(addAmountInput===0){
+  }
+  else if(addAmountInput===0){
     this.amountRef.current.focus();
     this.setState({
       amountIconColorState: 'red'
@@ -100,7 +100,7 @@ class AddExpense extends React.Component {
                 if (results.rowsAffected > 0) {
                   this.notifyMessage("Expense added successfully!!!")
                 this.setState({
-                  addAmountInput: ''
+                  addAmountInput: 0
                 })
                 } else {
                   this.notifyMessage("Failed to add Expense!!!")
@@ -131,8 +131,60 @@ amountChange(value){
   })
 }
   closeExpenseModel=()=>{
-    // this.props.fetchData();
+    this.updateExpenseScreen();
     this.props.setEModel(!this.props.EmodalVisible)
+  }
+  updateExpenseScreen=()=>{
+    SQLite.DEBUG(true);
+    SQLite.enablePromise(true);
+  
+    SQLite.openDatabase({
+        name: "WalletApp",
+        location: "default"
+    }).then((db) => {
+     db.transaction((tx) => {
+      tx.executeSql('CREATE TABLE IF NOT EXISTS Expense (id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20),amount INT(10), date DATE)');
+    }).then(() => {
+      console.log('database created successfully!!!')
+    }).catch(error => {
+        console.log(error);
+    });
+    db.transaction((tx) => {
+         var date = moment().format("L");
+        tx.executeSql(
+          'SELECT * FROM Expense WHERE  date = ?',
+          [date],
+          (tx, results) => {
+          //  console.log(results.rows)
+            var len = results.rows.length;
+           
+           
+      if (len > 0) {
+        var temp = [];
+        for (let i = 0; i < results.rows.length; ++i) {
+          temp.push(results.rows.item(i));
+        }
+        // this.props.dispatchIncomeByDate(temp);
+        this.props.dispatchExpenseByDate(temp);
+        var expenseSum = 0;
+        for (let i = 0; i < len; i++) {
+             let row = results.rows.item(i);
+          
+             expenseSum+=row.amount
+            
+         }
+         // this.setState({allExpenseAmountArray: expenseSum});   
+        //  console.log('expenseSum:'+expenseSum);
+            this.props.dispatchExpenseSumByDate(expenseSum);
+            }else{
+              // console.log('No user found');
+             
+            }
+          }
+        );
+       
+       });
+    });
   }
   fetchData=()=>{
     SQLite.DEBUG(true);
@@ -262,6 +314,12 @@ const mapDispatchToProps = dispatch => {
   return {
     add5: () => {
       dispatch(ExpenseCategoryAction())
+    },
+    dispatchExpenseByDate: (data) => {
+      dispatch(showExpenseByDateAction(data))
+    },
+    dispatchExpenseSumByDate: (name) => {
+      dispatch(showExpenseSumByDateAction(name))
     },
     
   }

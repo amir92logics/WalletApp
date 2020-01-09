@@ -11,11 +11,10 @@ import {
 // import { WebBrowser } from 'expo';
 import Icon  from 'react-native-vector-icons/FontAwesome'
 import {connect} from 'react-redux';
-import { incomeArrayState } from '../actions/incomeArrayActon';
-import { expenseArrayState } from '../actions/expenseArrayAction';
+import { showIncomeSumByDateAction } from '../actions/showIncomeSumByDateActon';
+import { showExpenseSumByDateAction } from '../actions/showExpenseSumByDateAction';
 import SQLite from 'react-native-sqlite-storage';
-
-import { MonoText } from '../components/StyledText';
+import moment from 'moment';
 class BalanceScreen extends React.Component {
   static navigationOptions = {
     header: null,
@@ -33,11 +32,21 @@ class BalanceScreen extends React.Component {
   }
 }
 componentDidMount(){
-  this.fetchData();
+  const { currentDate} = this.props;
+ this.fetchData(currentDate);
+//  console.log('Month: '+this.month());
 }
-fetchData=()=>{
-  // console.log("Database open Now!");
+fetchData=(value)=>{
+  // console.log("Database open Now!"+value);
+let currentMonth = moment(value).format("MM");
+// console.log("Current Month is: "+ currentDate)
+let currentYear = moment(value).format("Y");
+// console.log("Current Year is: "+ currentYear)
 
+let startDate = currentMonth+"/"+"01"+"/"+currentYear;
+let endDate = currentMonth+"/"+"31"+"/"+currentYear 
+// console.log("startDate: "+startDate + "EndDate is: "+endDate)
+SQLite.DEBUG(true);
   SQLite.DEBUG(true);
   SQLite.enablePromise(true);
 
@@ -46,69 +55,65 @@ fetchData=()=>{
       location: "default"
   }).then((db) => {
    db.transaction((tx) => {
-      // console.log("Database open Now!");
-      tx.executeSql(
-        'SELECT * FROM Income',
-        [],
-        (tx, results) => {
-         // console.log(results.rows)
-          var len = results.rows.length;
-          // var len = results.rows.length;
-          var incTemp =[];
-         //  var temp = [];
-         //  for (let i = 0; i < results.rows.length; ++i) {
-         //    temp.push(results.rows.item(i));
-         //  }
-     //  })
-     var sum = 0;
-     for (let i = 0; i < len; i++) {
-          let row = results.rows.item(i);
+    tx.executeSql('CREATE TABLE IF NOT EXISTS Income (id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20),amount INT(10),date DATE)');
+  }).then(() => {
+    console.log('database created successfully!!!')
+  }).catch(error => {
+      console.log(error);
+  });
+  db.transaction((tx) => {
+    tx.executeSql(
+      'SELECT * FROM Income WHERE  date BETWEEN ? AND ?',
+      [startDate, endDate],
+      (tx, results) => {
+       // console.log(results.rows)
+        var len = results.rows.length;
        
-          sum+=row.amount
+        var incomeSum = 0;
+    for (let i = 0; i < len; i++) {
+         let row = results.rows.item(i);
+      
+         incomeSum+=row.amount
+        
+     }
+    //  this.setState({allIncomeAmountArray: incomeSum});
+      // console.log('incomeSum:'+incomeSum);
+        this.props.dispatchIncomeSumByDate(incomeSum);
+  if (len > 0) {
+          // console.log(results.rows.item(0).category);
          
-      }
-         console.log('Sum:'+sum);
-           
-           // this.props.add5(incTemp);
- 
-           this.setState({allIncomeAmountArray: sum});
-          // console.log('len',len);
-          if (len > 0) {
-            // console.log(results.rows.item(0).category);
-           
-          }else{
-            // console.log('No user found');
-           
-          }
+        }else{
+          // console.log('No user found');
+         
         }
-      );
+      }
+    );
+     
+    tx.executeSql('CREATE TABLE IF NOT EXISTS Expense (id INTEGER PRIMARY KEY AUTOINCREMENT, category VARCHAR(20),amount INT(10), date DATE)');
+  }).then(() => {
+    console.log('database created successfully!!!')
+  }).catch(error => {
+      console.log(error);
+  });
+  db.transaction((tx) => {
       tx.executeSql(
-       'SELECT * FROM Expense',
-       [],
+       'SELECT * FROM Expense WHERE  date BETWEEN ? AND ?',
+       [startDate, endDate],
        (tx, results) => {
         // console.log(results.rows)
          var len = results.rows.length;
-         // var len = results.rows.length;
-         var expTemp =[];
-        //  var temp = [];
-        //  for (let i = 0; i < results.rows.length; ++i) {
-        //    temp.push(results.rows.item(i));
-        //  }
-    //  })
-    var sum = 0;
-         for (let i = 0; i < len; i++) {
-              let row = results.rows.item(i);
-           
-              sum+=row.amount
-             
-          }
-        //  console.log('Sum:'+sum);
-          
-          // this.props.add5(record);
-
-          this.setState({allExpenseAmountArray: sum});
-         // console.log('len',len);
-         if (len > 0) {
+        
+         var expenseSum = 0;
+     for (let i = 0; i < len; i++) {
+          let row = results.rows.item(i);
+       
+          expenseSum+=row.amount
+         
+      }
+      // this.setState({allExpenseAmountArray: expenseSum});   
+      // console.log('expenseSum:'+expenseSum);
+         this.props.dispatchExpenseSumByDate(expenseSum);
+   if (len > 0) {
            // console.log(results.rows.item(0).category);
           
          }else{
@@ -120,12 +125,18 @@ fetchData=()=>{
      });
   });
 }
+renderBalanceData=(income, expense)=>{
 
+  let balance =0;
+  balance= income - expense;
+  return balance
+}
   render() {
     // console.log(this.props.allExpenses);
-    let balance= this.state.allIncomeAmountArray - this.state.allExpenseAmountArray;
+    // let balance= this.state.allIncomeAmountArray - this.state.allExpenseAmountArray;
+   const { showIncomeSumByDate, showExpenseSumByDate } = this.props;
     return (
-     
+     <ScrollView>
        <View style={styles.contentContainer}>
       
           <View style={styles.balanceBar}>
@@ -142,62 +153,52 @@ fetchData=()=>{
           
           
           <View  style={styles.incomeText}>
-          <Text style={{color:'green'}}>Income</Text>
-    <Text style={{color:'green'}}>Rs {this.state.allIncomeAmountArray}.00</Text>
+          <Text style={{color:'#5cb85c'}}>Income</Text>
+    <Text style={{color:'#5cb85c'}}>Rs {showIncomeSumByDate}.00</Text>
 
           {/* <Text style={{color:'green'}}>Rs {this.props.allIncome}.00</Text> */}
           </View>
           
 
 <View style={styles.expenseText}>
-          <Text style={{color:'red'}}>Expense</Text>
-          <Text style={{color:'red'}}>Rs {this.state.allExpenseAmountArray}.00</Text>
+          <Text style={{color:'#d9534f'}}>Expense</Text>
+          <Text style={{color:'#d9534f'}}>Rs {showExpenseSumByDate}.00</Text>
 
           {/* <Text style={{color:'red'}}>Rs {this.props.allExpense}.00</Text> */}
           </View>
           
 
           <View style={styles.balanceText}>
-          <Text style={{}}>Balance</Text>
-          <Text style={{}}>Rs {balance}.00</Text>
+          <Text style={{color:'#292b2c'}}>Balance</Text>
+          <Text style={{color:'#292b2c'}}>Rs {this.renderBalanceData(showIncomeSumByDate,showExpenseSumByDate)}.00</Text>
 
           {/* <Text style={{}}>Rs {balance}.00</Text> */}
           </View>
           
           </View>
          
-      
+          </ScrollView>
     );
   }
 
 }
 const mapStateToProps = state => {
   return {
-    // next: state.date.date,
-    places: state.places.places,
-    Income: state.places.Income,
-    allIncome: state.places.allIncomes,
-    allExpense: state.places.allExpense,
-
-    Expense:state.places.Expense
-
+    currentDate:state.places.currentDate,
+    showIncomeSumByDate:state.places.showIncomeSumByDate,
+    showExpenseSumByDate:state.places.showExpenseSumByDate
+    
   }
 }
 const mapDispatchToProps = dispatch => {
   return {
    
-    add2: (name) => {
-      dispatch(incomeArrayState(name))
+    dispatchIncomeSumByDate: (name) => {
+      dispatch(showIncomeSumByDateAction(name))
     },
-   
-    add4: (name) => {
-      dispatch(expenseArrayState(name))
+    dispatchExpenseSumByDate: (name) => {
+      dispatch(showExpenseSumByDateAction(name))
     },
-    
-    // changeStateToReducer1: (name) => {
-    //   dispatch(incomeState(name))
-    // }
-
   }
 }
 
@@ -248,10 +249,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     justifyContent:"center",
     // alignSelf: 'stretch',
-    marginTop:20
+    marginTop:30
   },
   greenBar:{
-    backgroundColor:"green",
+    backgroundColor:"#5cb85c",
     // alignSelf: 'stretch',
     padding: 5,
     alignItems: 'flex-start',
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
     },
   redBar:{
-    backgroundColor:"red",
+    backgroundColor:"#d9534f",
     alignItems: 'flex-end',
     padding: 5,
     // alignSelf: 'stretch',
