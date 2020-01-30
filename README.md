@@ -1,4 +1,4 @@
-# React Native Expense Manage Wallet Application
+# React Native Expense Manager Wallet Application
 Expense Manager Wallet app manages your wallet on daily, monthly  and yearly basis.
 
 
